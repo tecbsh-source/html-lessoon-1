@@ -187,6 +187,9 @@ td:first-child{white-space:nowrap}
 .who label{font-size:.9rem;font-weight:600;display:block;margin-bottom:2px}
 .who input{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1.5px solid var(--line);border-radius:10px;padding:8px 12px}
 .who input:focus{border-color:var(--accent);outline:0}
+.confirm{display:flex;align-items:center;gap:10px;font-weight:600;background:var(--bg);border-radius:10px;padding:10px 14px;cursor:pointer}
+.confirm input{width:22px;height:22px;accent-color:var(--good);flex:none}
+a.btn{display:inline-block;text-decoration:none}
 .sendbar{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
 .sendbar span{font-size:.95rem;color:var(--muted);flex:1;min-width:200px}
 .sendbar span.ok{color:var(--good);font-weight:600}.sendbar span.no{color:var(--bad);font-weight:600}
@@ -409,11 +412,23 @@ td:first-child{white-space:nowrap}
 
   <div class="card act">
     <span class="kind">المشروع</span>
-    <h3>اكتب صفحتك وحقّق المتطلبات الستة</h3>
+    <h3>اكتبي صفحتك وحقّقي المتطلبات الستة</h3>
     <div class="ed" id="ed-final"></div>
     <ul class="tasks" id="finaltasks"></ul>
     <div class="result"><span id="copyfb" aria-live="polite"></span><button class="btn" id="copy">انسخ المقطع البرمجي</button></div>
     <p class="note"><b>بعد النسخ:</b> الصق المقطع في ملف جديد باسم <code>MyPage.html</code> داخل مجلد <code>Pages</code> في فيجوال ستوديو كود، احفظه ثم افتحه في المتصفح.</p>
+  </div>
+
+  <div class="card check">
+    <span class="kind">تسليم النشاط</span>
+    <h3>ارفعي صورة لصفحتك كما تظهر في المتصفح</h3>
+    <ol class="plain">
+      <li>افتحي صفحتك في المتصفح بعد حفظها. إن كنتِ تعملين من الجوال أو الآيباد فاستخدمي نافذة «النتيجة في المتصفح» في المشروع أعلاه.</li>
+      <li>التقطي صورة للشاشة يظهر فيها عنوان الصفحة في التبويب والعنوان الرئيس والفقرات. على حاسب ويندوز: مفتاح شعار ويندوز مع <span class="ltr">Shift + S</span></li>
+      <li id="upwhere">ارفعي الصورة في المكان الذي حددته معلمتك، مثل واجب الحصة في تيمز.</li>
+    </ol>
+    <div><a class="btn" id="uplink" target="_blank" rel="noopener" hidden>فتح صفحة رفع الصورة</a></div>
+    <label class="confirm" for="shot"><input type="checkbox" id="shot"> رفعتُ صورة صفحتي</label>
   </div>
 
   <div class="win" id="win" hidden>
@@ -475,6 +490,9 @@ td:first-child{white-space:nowrap}
    5 المرحلي 2 (من 2)  6 المرحلي 3 (من 2)  7 المرحلي 4 (من 3)
    8 المشروع الختامي (من 6)  9 المحطات المنجزة (من 6)                */
 var FORM_LINK = "https://docs.google.com/forms/d/e/1FAIpQLSfLw26ZScC3_lEyKpI_52Emqa29yvpGhSewWgzr2Atrr4eEqw/viewform?usp=pp_url&entry.546714147=1&entry.1038950895=1&entry.1435151131=1&entry.923115909=1&entry.893253434=1&entry.563844132=1&entry.6757447=1&entry.262041570=1&entry.1304923088=1";
+/* رابط المكان الذي ترفع فيه الطالبة صورة متصفحها (واجب تيمز مثلًا).
+   اتركيه فارغًا إن كنتِ ستخبرين الطالبات بمكان الرفع شفهيًا.        */
+var UPLOAD_LINK = "https://padlet.com/tecbsh/html-1-s025h8ihb3v65zy907tm";
 /* ========================================================= */
 
 var $=function(s,r){return (r||document).querySelector(s)};
@@ -547,7 +565,7 @@ var ORDER=['<!DOCTYPE html>','<html dir="rtl" lang="ar">','<head> ... </head>','
 
 /* ---------- state ---------- */
 var KEY="html-lesson-file-v1";
-var S={stage:0,q:{},spots:[],sort:{},order:[4,1,6,0,3,2,5],orderOk:false,code:{},name:"",cls:"",sentAt:"",autoSent:false};
+var S={stage:0,q:{},spots:[],sort:{},order:[4,1,6,0,3,2,5],orderOk:false,code:{},name:"",cls:"",sentAt:"",autoSent:false,shot:false};
 try{var saved=JSON.parse(localStorage.getItem(KEY));if(saved&&typeof saved==="object"){for(var k in S){if(saved[k]!=null)S[k]=saved[k]}}}catch(e){}
 if(!Array.isArray(S.order)||S.order.length!==ORDER.length)S.order=[4,1,6,0,3,2,5];
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
@@ -725,7 +743,7 @@ function stageDone(i){
     case 2:return sortRight()===6&&qDone("s2");
     case 3:return !!S.orderOk&&qDone("s3");
     case 4:return fixOk&&qDone("s4");
-    case 5:return finalOk;
+    case 5:return finalOk&&!!S.shot;
   }
 }
 function refresh(){
@@ -763,7 +781,8 @@ function send(auto){
   var vals=[S.name.trim(),S.cls.trim(),scoreOrBlank("pre"),scoreOrBlank("s1"),scoreOrBlank("s2"),scoreOrBlank("s3"),scoreOrBlank("s4"),String(finalCount),String(done)];
   var body=new URLSearchParams();vals.forEach(function(v,j){body.append(CFG.ids[j],v)});
   var btn=$("#send");btn.disabled=true;sendStatus("جارٍ الإرسال...");
-  fetch(CFG.action,{method:"POST",mode:"no-cors",body:body}).then(function(){
+  body.append("submit","Submit");
+  fetch(CFG.action+"?"+body.toString(),{method:"GET",mode:"no-cors",cache:"no-store"}).then(function(){
     var d=new Date();S.sentAt=("0"+d.getHours()).slice(-2)+":"+("0"+d.getMinutes()).slice(-2);save();
     sendStatus("أُرسلت نتيجتك إلى المعلمة الساعة "+S.sentAt+". يمكنك الإرسال مرة أخرى إذا تقدّمتِ أكثر.","ok");
   }).catch(function(){
@@ -800,6 +819,10 @@ nameIn.value=S.name||"";clsIn.value=S.cls||"";
 nameIn.addEventListener("input",function(){S.name=nameIn.value;save()});
 clsIn.addEventListener("input",function(){S.cls=clsIn.value;save()});
 $("#send").addEventListener("click",function(){send(false)});
+var shot=$("#shot");shot.checked=!!S.shot;
+shot.addEventListener("change",function(){S.shot=shot.checked;save();refresh()});
+if(/^https?:\/\//i.test(UPLOAD_LINK.trim())){var ul=$("#uplink");ul.href=UPLOAD_LINK.trim();ul.hidden=false;
+  $("#upwhere").textContent="اضغطي الزر التالي وأضيفي صورتك في الصفحة التي تفتح مع كتابة اسمك عليها، ثم عودي إلى هنا.";}
 if(!CFG)sendStatus("الإرسال غير مفعّل: لم يُضف رابط نموذج المعلمة بعد.");
 else if(S.sentAt)sendStatus("آخر إرسال لنتيجتك كان الساعة "+S.sentAt+".","ok");
 else sendStatus("عند إنهاء المحطات الست تُرسل نتيجتك تلقائيًا، ويمكنك إرسال تقدمك في أي وقت.");
