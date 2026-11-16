@@ -185,8 +185,8 @@ td:first-child{white-space:nowrap}
 
 .who{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .who label{font-size:.9rem;font-weight:600;display:block;margin-bottom:2px}
-.who input{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1.5px solid var(--line);border-radius:10px;padding:8px 12px}
-.who input:focus{border-color:var(--accent);outline:0}
+.who input,.who select{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1.5px solid var(--line);border-radius:10px;padding:8px 12px}
+.who input:focus,.who select:focus{border-color:var(--accent);outline:0}
 .confirm{display:flex;align-items:center;gap:10px;font-weight:600;background:var(--bg);border-radius:10px;padding:10px 14px;cursor:pointer}
 .confirm input{width:22px;height:22px;accent-color:var(--good);flex:none}
 a.btn{display:inline-block;text-decoration:none}
@@ -221,10 +221,10 @@ a.btn{display:inline-block;text-decoration:none}
 
   <div class="card">
     <span class="kind">بياناتي</span>
-    <h3>اكتبي اسمك وصفّك لتصل نتيجتك إلى المعلمة</h3>
+    <h3>اكتبي اسمك واختاري فصلك لتصل نتيجتك إلى المعلمة</h3>
     <div class="who">
       <div><label for="who-name">الاسم الثلاثي</label><input id="who-name" type="text" autocomplete="off" maxlength="60"></div>
-      <div><label for="who-cls">الصف / الشعبة</label><input id="who-cls" type="text" autocomplete="off" maxlength="30"></div>
+      <div><label for="who-cls">الفصل / الشعبة</label><select id="who-cls"><option value="">اختاري من القائمة</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select></div>
     </div>
   </div>
 
@@ -776,7 +776,7 @@ function scoreOrBlank(k){return String(qScore(k))}
 function send(auto){
   if(!CFG){sendStatus("الإرسال غير مفعّل في هذه النسخة. أخبري معلمتك.","no");return}
   if(!S.name.trim()){sendStatus("اكتبي اسمك في محطة «الاستعداد» أولًا ثم أرسلي.","no");if(!auto){go(0,true);$("#who-name").focus()}return}
-  if(!S.cls.trim()){sendStatus("اكتبي صفّك في محطة «الاستعداد» أولًا ثم أرسلي.","no");if(!auto){go(0,true);$("#who-cls").focus()}return}
+  if(!S.cls.trim()){sendStatus("اختاري فصلك من القائمة في محطة «الاستعداد» أولًا ثم أرسلي.","no");if(!auto){go(0,true);$("#who-cls").focus()}return}
   var done=0;for(var i=0;i<6;i++){if(stageDone(i))done++}
   var vals=[S.name.trim(),S.cls.trim(),scoreOrBlank("pre"),scoreOrBlank("s1"),scoreOrBlank("s2"),scoreOrBlank("s3"),scoreOrBlank("s4"),String(finalCount),String(done)];
   var body=new URLSearchParams();vals.forEach(function(v,j){body.append(CFG.ids[j],v)});
@@ -815,9 +815,9 @@ $("#copy").addEventListener("click",function(){
   try{navigator.clipboard.writeText(edFinal.ta.value).then(function(){fb.textContent="تم نسخ المقطع البرمجي."},manual)}catch(e){manual()}
 });
 var nameIn=$("#who-name"),clsIn=$("#who-cls");
-nameIn.value=S.name||"";clsIn.value=S.cls||"";
+nameIn.value=S.name||"";clsIn.value=S.cls||"";if(clsIn.value!==S.cls){S.cls="";save()}
 nameIn.addEventListener("input",function(){S.name=nameIn.value;save()});
-clsIn.addEventListener("input",function(){S.cls=clsIn.value;save()});
+clsIn.addEventListener("change",function(){S.cls=clsIn.value;save()});
 $("#send").addEventListener("click",function(){send(false)});
 var shot=$("#shot");shot.checked=!!S.shot;
 shot.addEventListener("change",function(){S.shot=shot.checked;save();refresh()});
