@@ -431,6 +431,11 @@ a.btn{display:inline-block;text-decoration:none}
     <label class="confirm" for="shot"><input type="checkbox" id="shot"> رفعتُ صورة صفحتي</label>
   </div>
 
+  <div class="sendbar">
+    <span id="sendfb" aria-live="polite"></span>
+    <button class="btn" id="send">إرسال نتيجتي إلى المعلمة</button>
+  </div>
+
   <div class="win" id="win" hidden>
     <h3>أحسنت! أنشأت صفحتك الإلكترونية الأولى</h3>
     <p>قارن بين ما كنت تعرفه في البداية وما حققته خلال الدرس:</p>
@@ -473,10 +478,6 @@ a.btn{display:inline-block;text-decoration:none}
   <button class="btn" id="next">التالي</button>
 </div>
 
-<div class="sendbar">
-  <span id="sendfb" aria-live="polite"></span>
-  <button class="btn" id="send">إرسال نتيجتي إلى المعلمة</button>
-</div>
 
 </div>
 <script>
@@ -825,7 +826,7 @@ if(/^https?:\/\//i.test(UPLOAD_LINK.trim())){var ul=$("#uplink");ul.href=UPLOAD_
   $("#upwhere").textContent="اضغطي الزر التالي وأضيفي صورتك في الصفحة التي تفتح مع كتابة اسمك عليها، ثم عودي إلى هنا.";}
 if(!CFG)sendStatus("الإرسال غير مفعّل: لم يُضف رابط نموذج المعلمة بعد.");
 else if(S.sentAt)sendStatus("آخر إرسال لنتيجتك كان الساعة "+S.sentAt+".","ok");
-else sendStatus("عند إنهاء المحطات الست تُرسل نتيجتك تلقائيًا، ويمكنك إرسال تقدمك في أي وقت.");
+else sendStatus("عند إنهاء المحطات الست تُرسل نتيجتك تلقائيًا، أو اضغطي الزر لإرسالها الآن.");
 go(S.stage,false);
 })();
 </script>
