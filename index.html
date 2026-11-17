@@ -190,6 +190,8 @@ td:first-child{white-space:nowrap}
 .confirm{display:flex;align-items:center;gap:10px;font-weight:600;background:var(--bg);border-radius:10px;padding:10px 14px;cursor:pointer}
 .confirm input{width:22px;height:22px;accent-color:var(--good);flex:none}
 a.btn{display:inline-block;text-decoration:none}
+.grade{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;background:var(--accent-soft);border-radius:10px;padding:10px 16px}
+.grade b{font-family:var(--display);font-size:1.6rem;font-variant-numeric:tabular-nums}
 .sendbar{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
 .sendbar span{font-size:.95rem;color:var(--muted);flex:1;min-width:200px}
 .sendbar span.ok{color:var(--good);font-weight:600}.sendbar span.no{color:var(--bad);font-weight:600}
@@ -431,6 +433,8 @@ a.btn{display:inline-block;text-decoration:none}
     <label class="confirm" for="shot"><input type="checkbox" id="shot"> رفعتُ صورة صفحتي</label>
   </div>
 
+  <div class="grade"><span>درجتك النهائية حتى الآن</span><b id="gradenow"></b><span>تُحتسب المحطات المكتملة فقط، ودرجة المشروع بعد تأكيد رفع الصورة</span></div>
+
   <div class="sendbar">
     <span id="sendfb" aria-live="polite"></span>
     <button class="btn" id="send">إرسال نتيجتي إلى المعلمة</button>
@@ -442,6 +446,7 @@ a.btn{display:inline-block;text-decoration:none}
     <div class="scores">
       <div>التقويم التمهيدي<b id="sc-pre"></b></div>
       <div>التقويمات المرحلية<b id="sc-form"></b></div>
+      <div>الدرجة النهائية<b id="sc-grade"></b></div>
     </div>
   </div>
 
@@ -489,8 +494,9 @@ a.btn{display:inline-block;text-decoration:none}
    يجب أن يحتوي النموذج على 9 أسئلة «إجابة قصيرة» بهذا الترتيب:
    1 الاسم  2 الصف/الشعبة  3 التقويم التمهيدي (من 4)  4 المرحلي 1 (من 3)
    5 المرحلي 2 (من 2)  6 المرحلي 3 (من 2)  7 المرحلي 4 (من 3)
-   8 المشروع الختامي (من 6)  9 المحطات المنجزة (من 6)                */
-var FORM_LINK = "https://docs.google.com/forms/d/e/1FAIpQLSfLw26ZScC3_lEyKpI_52Emqa29yvpGhSewWgzr2Atrr4eEqw/viewform?usp=pp_url&entry.546714147=1&entry.1038950895=1&entry.1435151131=1&entry.923115909=1&entry.893253434=1&entry.563844132=1&entry.6757447=1&entry.262041570=1&entry.1304923088=1";
+   8 المشروع الختامي (من 6)  9 المحطات المنجزة (من 6)
+   10 الدرجة النهائية (من 16) — تُرسل فقط إذا احتوى الرابط على 10 حقول  */
+var FORM_LINK = "https://docs.google.com/forms/d/e/1FAIpQLSfLw26ZScC3_lEyKpI_52Emqa29yvpGhSewWgzr2Atrr4eEqw/viewform?usp=pp_url&entry.546714147=1&entry.1038950895=1&entry.1435151131=1&entry.923115909=1&entry.893253434=1&entry.563844132=1&entry.6757447=1&entry.262041570=1&entry.1304923088=1&entry.790872582=1";
 /* رابط المكان الذي ترفع فيه الطالبة صورة متصفحها (واجب تيمز مثلًا).
    اتركيه فارغًا إن كنتِ ستخبرين الطالبات بمكان الرفع شفهيًا.        */
 var UPLOAD_LINK = "https://padlet.com/tecbsh/html-1-s025h8ihb3v65zy907tm";
@@ -737,6 +743,8 @@ function checkFinal(code,doc){
 }
 
 /* ---------- stages / progress ---------- */
+var GMAX=16;
+function grade(){var g=0;["s1","s2","s3","s4"].forEach(function(k,i){if(stageDone(i+1))g+=qScore(k)});if(S.shot)g+=finalCount;return g}
 function stageDone(i){
   switch(i){
     case 0:return qDone("pre");
@@ -759,6 +767,8 @@ function refresh(){
   var f=0,ft=0;["s1","s2","s3","s4"].forEach(function(k){f+=qScore(k);ft+=QUIZ[k].length});
   $("#sc-pre").textContent=qScore("pre")+" / "+QUIZ.pre.length;
   $("#sc-form").textContent=f+" / "+ft;
+  $("#sc-grade").textContent=grade()+" / "+GMAX;
+  $("#gradenow").textContent=grade()+" من "+GMAX;
   if(n===6&&!S.autoSent&&CFG&&S.name.trim()&&S.cls.trim()){S.autoSent=true;save();send(true)}
 }
 
@@ -780,6 +790,7 @@ function send(auto){
   if(!S.cls.trim()){sendStatus("اختاري فصلك من القائمة في محطة «الاستعداد» أولًا ثم أرسلي.","no");if(!auto){go(0,true);$("#who-cls").focus()}return}
   var done=0;for(var i=0;i<6;i++){if(stageDone(i))done++}
   var vals=[S.name.trim(),S.cls.trim(),scoreOrBlank("pre"),scoreOrBlank("s1"),scoreOrBlank("s2"),scoreOrBlank("s3"),scoreOrBlank("s4"),String(finalCount),String(done)];
+  if(CFG.ids.length>=10)vals.push(String(grade()));
   var body=new URLSearchParams();vals.forEach(function(v,j){body.append(CFG.ids[j],v)});
   var btn=$("#send");btn.disabled=true;sendStatus("جارٍ الإرسال...");
   body.append("submit","Submit");
